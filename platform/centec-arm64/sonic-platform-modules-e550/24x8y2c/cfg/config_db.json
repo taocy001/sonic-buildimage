@@ -5,7 +5,7 @@
             "deployment_id": null, 
             "hostname": "switch1", 
             "type": "LeafRouter", 
-            "hwsku": "E550-24x8y2c",
+            "hwsku": "E550-24x8y2c"
         }
     }, 
     "BGP_PEER_RANGE": {}, 
