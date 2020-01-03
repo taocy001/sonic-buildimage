@@ -695,7 +695,7 @@ static int e530_48t4x_p_exit_led(void)
 #define MAX_SFP_EEPROM_DATA_LEN 256
 struct sfp_info_t {
     char data[MAX_SFP_EEPROM_DATA_LEN+1];
-    unsigned char data_len;
+    unsigned short data_len;
     int presence;
     spinlock_t lock;
 };
@@ -853,6 +853,7 @@ static ssize_t e530_48t4x_p_sfp_read_eeprom(struct device *dev, struct device_at
     memcpy(buf, sfp_info[portNum].data, sfp_info[portNum].data_len);
     size = sfp_info[portNum].data_len;
     spin_unlock_irqrestore(&(sfp_info[portNum].lock), flags);
+
     return size;
 }
 

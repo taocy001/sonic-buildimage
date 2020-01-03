@@ -85,6 +85,8 @@ struct dal_user_dev_s
 {
     unsigned int chip_num;   /*output: local chip number*/
     unsigned int lchip;       /*input: local chip id*/
+    unsigned int phy_base0; /* low 32bits physical base address */
+    unsigned int phy_base1; /* high 32bits physical base address */
     unsigned int bus_no;
     unsigned int dev_no;
     unsigned int fun_no;

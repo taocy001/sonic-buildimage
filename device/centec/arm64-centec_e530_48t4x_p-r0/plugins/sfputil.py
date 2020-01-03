@@ -39,7 +39,7 @@ class SfpUtil(SfpUtilBase):
 
     @property
     def qsfp_ports(self):
-        return None
+        return ()
 
     @property
     def port_to_eeprom_mapping(self):
@@ -99,7 +99,7 @@ class SfpUtil(SfpUtilBase):
         if port_num < self.sfp_base:
             return False
         try:
-            with open(self.f_sfp_present.format(port_num), 'r') as sfp_file:
+            with open(self.f_sfp_present.format(port_num - self.sfp_base + 1), 'r') as sfp_file:
                 return 1 == int(sfp_file.read())
         except IOError as e:
             DBG_PRINT(str(e))
@@ -128,4 +128,4 @@ class SfpUtil(SfpUtilBase):
         return False
 
     def get_transceiver_change_event(self, timeout=0):
-        return False, {}
+        return True, {}
