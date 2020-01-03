@@ -32,7 +32,7 @@ class PlatformInit:
             mac_addr = mac_addr[:-2] + aligned_last_byte
             DBG_PRINT("start connect swss config-db to set device mac-address")
             swss = swsssdk.SonicV2Connector()
-            swss.connect(swss.CONFIG_DB)
+            swss.connect(swss.CONFIG_DB, False)
             swss.set(swss.CONFIG_DB, "DEVICE_METADATA|localhost", 'mac', mac_addr)
             mac_addr = swss.get(swss.CONFIG_DB, "DEVICE_METADATA|localhost", 'mac')
             DBG_PRINT("set device mac-address: %s" % mac_addr)

@@ -3,5 +3,6 @@
 export CENTEC_SAI_VERSION = 1.5.1-1.0
 export CENTEC_SAI = libsai_$(CENTEC_SAI_VERSION)_$(PLATFORM_ARCH).deb
 
-$(CENTEC_SAI)_SRC_PATH = $(PLATFORM_PATH)/sai
-SONIC_MAKE_DEBS += $(CENTEC_SAI)
+$(CENTEC_SAI)_URL = https://github.com/CentecNetworks/sonic-binaries/blob/master/$(PLATFORM_ARCH)/sai/$(CENTEC_SAI)
+SONIC_ONLINE_DEBS += $(CENTEC_SAI)
+SONIC_STRETCH_DEBS += $(CENTEC_SAI)
