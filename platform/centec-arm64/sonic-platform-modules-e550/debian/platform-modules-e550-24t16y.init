@@ -38,7 +38,6 @@ function remove_kernel_modules()
 case "$1" in
 start)
     echo -n "Load Centec kernel modules... "
-    /usr/bin/24t16y_platform.sh init
 
     # create_devices
     load_kernel_modules
@@ -48,7 +47,6 @@ start)
 
 stop)
     echo -n "Unload Centec kernel modules... "
-    /usr/bin/24t16y_platform.sh deinit
 
     remove_kernel_modules
 

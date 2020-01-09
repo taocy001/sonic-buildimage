@@ -1,0 +1,39 @@
+#!/bin/bash
+# This script config centec platform link router MAC
+
+### BEGIN INIT INFO
+# Provides:          centec
+# Required-Start:
+# Required-Stop:
+# Should-Start:
+# Should-Stop:
+# Default-Start:     S
+# Default-Stop:      0 6
+# Short-Description: Load Centec kernel modules
+### END INIT INFO
+
+case "$1" in
+start)
+    echo -n "set router MAC to config DB... "
+    /usr/bin/centec_routermac.sh init
+    echo "done."
+    ;;
+
+stop)
+    echo -n "unset router MAC to config DB... "
+    /usr/bin/centec_routermac.sh deinit
+    echo "done."
+    ;;
+
+force-reload|restart)
+    echo "Not supported"
+    ;;
+
+*)
+    echo "Usage: /etc/init.d/centec-platform-conf {start|stop}"
+    exit 1
+    ;;
+esac
+
+exit 0
+
