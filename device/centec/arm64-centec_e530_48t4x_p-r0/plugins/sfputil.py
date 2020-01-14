@@ -89,6 +89,9 @@ class SfpUtil(SfpUtilBase):
             self.eeprom_mapping[x] = None
         for x in range(self.sfp_base, self.port_end + 1):
             self.eeprom_mapping[x] = "/sys/class/sfp/sfp{}/sfp_eeprom".format(x - self.sfp_base + 1)
+        self.presence = {}
+        for x in range(self.sfp_base, self.port_end + 1):
+            self.presence[x] = False;
 
         SfpUtilBase.__init__(self)
 
@@ -128,4 +131,13 @@ class SfpUtil(SfpUtilBase):
         return False
 
     def get_transceiver_change_event(self, timeout=0):
-        return True, {}
+        port_dict = {}
+        while True:
+            for x in range(self.sfp_base, self.port_end + 1):
+                presence = self.get_presence(x)
+                if presence != self.presence[x]:
+                    self.presence[x] = presence
+                    port_dict[x] = presence
+                    return True, port_dict
+            time.sleep(0.5)
+        return False, {}

@@ -1,3 +1,0 @@
-scripts/centec_routermac.sh usr/bin
-scripts/centec_routermac.py usr/bin
-service/centec_platform_conf.service /lib/systemd/system

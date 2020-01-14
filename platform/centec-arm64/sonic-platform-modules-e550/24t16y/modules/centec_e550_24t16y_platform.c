@@ -648,7 +648,7 @@ static int e550_24t16y_exit_psu(void)
 }
 #endif
 
-//20191123:1535 TODO
+
 #if SEP("drivers:leds")
 extern void e550_24t16y_led_set(struct led_classdev *led_cdev, enum led_brightness set_value);
 extern enum led_brightness e550_24t16y_led_get(struct led_classdev *led_cdev);
@@ -997,59 +997,60 @@ static int e550_24t16y_exit_led(void)
 #endif
 
 #if SEP("drivers:sfp")
+#define MAX_SFP_EEPROM_DATA_LEN 256
+struct sfp_info_t {
+    char data[MAX_SFP_EEPROM_DATA_LEN+1];
+    unsigned short data_len;
+    int presence;
+    spinlock_t lock;
+};
 static struct class* sfp_class = NULL;
-static struct device* sfp_dev[PORT_NUM+1-24] = {NULL};
+static struct device* sfp_dev[SFP_NUM+1] = {NULL};
+static struct sfp_info_t sfp_info[SFP_NUM+1];
 
-#if 1
 static ssize_t e550_24t16y_sfp_read_presence(struct device *dev, struct device_attribute *attr, char *buf)
 {
-    int ret = 0;
-    unsigned char offset = 0;
-    unsigned char value = 0;
-    unsigned char reg_no = 0;
     int portNum = 0;
     const char *name = dev_name(dev);
-    struct i2c_client *i2c_sfp_client = NULL;
+    unsigned long flags = 0;
+    int presence = 0;
 
     sscanf(name, "sfp%d", &portNum);
 
-    portNum += 24;
-
-    if ((portNum < 1) || (portNum > PORT_NUM))
+    if ((portNum < 1) || (portNum > SFP_NUM))
     {
         printk(KERN_CRIT "sfp read presence, invalid port number!\n");
-        value = 0;
+        buf[0] = '\0';
+        return 0;
     }
 
-    if ((portNum >= 25) && (portNum <= 32))
-    {
-        offset = 0x16;
-        reg_no = portNum - 25;
-        i2c_sfp_client = i2c_client_epld;
-    }
-    else if ((portNum >= 33) && (portNum <= 40))
-    {
-        offset = 0x15;
-        reg_no = portNum - 33;
-        i2c_sfp_client = i2c_client_epld;
-    }
-    else 
-    {
-        printk(KERN_INFO "%s not supported!\n", name);
-        return sprintf(buf, "%d\n", 0);
-    }
-
-    ret = e550_24t16y_smbus_read_reg(i2c_sfp_client, offset, &value);
-    if (ret != 0)
-    {
-        return sprintf(buf, "Error: read sfp data:%s failed\n", attr->attr.name);
-    }
-
-    value = ((value & (1<<(reg_no%8))) ? 0 : 1 );/*1:PRESENT 0:ABSENT*/
-    
-    return sprintf(buf, "%d\n", value);
+    spin_lock_irqsave(&(sfp_info[portNum].lock), flags);
+    presence = sfp_info[portNum].presence;
+    spin_unlock_irqrestore(&(sfp_info[portNum].lock), flags);
+    return sprintf(buf, "%d\n", presence);
 }
-#endif
+
+static ssize_t e550_24t16y_sfp_write_presence(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
+{
+    int portNum = 0;
+    const char *name = dev_name(dev);
+    unsigned long flags = 0;
+    int presence = simple_strtol(buf, NULL, 10);
+
+    sscanf(name, "sfp%d", &portNum);
+
+    if ((portNum < 1) || (portNum > SFP_NUM))
+    {
+        printk(KERN_CRIT "sfp read presence, invalid port number!\n");
+        return size;
+    }
+
+    spin_lock_irqsave(&(sfp_info[portNum].lock), flags);
+    sfp_info[portNum].presence = presence;
+    spin_unlock_irqrestore(&(sfp_info[portNum].lock), flags);
+
+    return size;
+}
 
 static ssize_t e550_24t16y_sfp_read_enable(struct device *dev, struct device_attribute *attr, char *buf)
 {
@@ -1063,24 +1064,23 @@ static ssize_t e550_24t16y_sfp_read_enable(struct device *dev, struct device_att
 
     sscanf(name, "sfp%d", &portNum);
 
-    portNum += 24;
 
-    if ((portNum < 1) || (portNum > PORT_NUM))
+    if ((portNum < 1) || (portNum > SFP_NUM))
     {
-        printk(KERN_CRIT "sfp read presence, invalid port number!\n");
+        printk(KERN_CRIT "sfp read enable, invalid port number!\n");
         value = 0;
     }
 
-    if ((portNum >= 25) && (portNum <= 32))
+    if ((portNum >= 1) && (portNum <= 8))
     {
         offset = 0x14;
-        reg_no = portNum - 25;
+        reg_no = portNum - 1;
         i2c_sfp_client = i2c_client_epld;
     }
-    else if ((portNum >= 33) && (portNum <= 40))
+    else if ((portNum >= 9) && (portNum <= 16))
     {
         offset = 0x13;
-        reg_no = portNum - 33;
+        reg_no = portNum - 9;
         i2c_sfp_client = i2c_client_epld;
     }
     else 
@@ -1100,7 +1100,6 @@ static ssize_t e550_24t16y_sfp_read_enable(struct device *dev, struct device_att
     return sprintf(buf, "%d\n", value);
 }
 
-//20191123:1553 TODO
 static ssize_t e550_24t16y_sfp_write_enable(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
 {
     int ret = 0;
@@ -1114,24 +1113,22 @@ static ssize_t e550_24t16y_sfp_write_enable(struct device *dev, struct device_at
 
     sscanf(name, "sfp%d", &portNum);
 
-    portNum += 24;
-
-    if ((portNum < 1) || (portNum > PORT_NUM))
+    if ((portNum < 1) || (portNum > SFP_NUM))
     {
-        printk(KERN_CRIT "sfp read presence, invalid port number!\n");
+        printk(KERN_CRIT "sfp read enable, invalid port number!\n");
         return size;
     }
 
-    if ((portNum >= 25) && (portNum <= 32))
+    if ((portNum >= 1) && (portNum <= 8))
     {
         offset = 0x14;
-        reg_no = portNum - 25;
+        reg_no = portNum - 1;
         i2c_sfp_client = i2c_client_epld;
     }
-    else if ((portNum >= 33) && (portNum <= 40))
+    else if ((portNum >= 9) && (portNum <= 16))
     {
         offset = 0x13;
-        reg_no = portNum - 33;
+        reg_no = portNum - 9;
         i2c_sfp_client = i2c_client_epld;
     }
     else 
@@ -1168,8 +1165,56 @@ static ssize_t e550_24t16y_sfp_write_enable(struct device *dev, struct device_at
     return size;
 }
 
-static DEVICE_ATTR(sfp_presence, S_IRUGO, e550_24t16y_sfp_read_presence, NULL);
+static ssize_t e550_24t16y_sfp_read_eeprom(struct device *dev, struct device_attribute *attr, char *buf)
+{
+    int portNum = 0;
+    const char *name = dev_name(dev);
+    unsigned long flags = 0;
+    size_t size = 0;
+
+    sscanf(name, "sfp%d", &portNum);
+
+    if ((portNum < 1) || (portNum > SFP_NUM))
+    {
+        printk(KERN_CRIT "sfp read eeprom, invalid port number!\n");
+        buf[0] = '\0';
+        return 0;
+    }
+
+    spin_lock_irqsave(&(sfp_info[portNum].lock), flags);
+    memcpy(buf, sfp_info[portNum].data, sfp_info[portNum].data_len);
+    size = sfp_info[portNum].data_len;
+    spin_unlock_irqrestore(&(sfp_info[portNum].lock), flags);
+
+    return size;
+}
+
+static ssize_t e550_24t16y_sfp_write_eeprom(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
+{
+    int portNum = 0;
+    const char *name = dev_name(dev);
+    unsigned long flags = 0;
+
+    sscanf(name, "sfp%d", &portNum);
+
+    if ((portNum < 1) || (portNum > SFP_NUM))
+    {
+        printk(KERN_CRIT "sfp write eeprom, invalid port number!\n");
+        return size;
+    }
+
+    spin_lock_irqsave(&(sfp_info[portNum].lock), flags);
+    memcpy(sfp_info[portNum].data, buf, size);
+    sfp_info[portNum].data_len = size;
+    spin_unlock_irqrestore(&(sfp_info[portNum].lock), flags);
+
+    return size;
+}
+
+static DEVICE_ATTR(sfp_presence, S_IRUGO|S_IWUSR, e550_24t16y_sfp_read_presence, e550_24t16y_sfp_write_presence);
 static DEVICE_ATTR(sfp_enable, S_IRUGO|S_IWUSR, e550_24t16y_sfp_read_enable, e550_24t16y_sfp_write_enable);
+static DEVICE_ATTR(sfp_eeprom, S_IRUGO|S_IWUSR, e550_24t16y_sfp_read_eeprom, e550_24t16y_sfp_write_eeprom);
+
 static int e550_24t16y_init_sfp(void)
 {
     int ret = 0;
@@ -1183,30 +1228,38 @@ static int e550_24t16y_init_sfp(void)
         return -1;
     }
 
-    for (i=1; i<=PORT_NUM; i++)
+    for (i=1; i<=SFP_NUM; i++)
     {
-        if (i <= 24)
-            continue;
+	memset(&(sfp_info[i].data), 0, MAX_SFP_EEPROM_DATA_LEN+1);
+        sfp_info[i].data_len = 0;
+        spin_lock_init(&(sfp_info[i].lock));
 
-        sfp_dev[i-24] = device_create(sfp_class, NULL, MKDEV(223,i-24), NULL, "sfp%d", i-24);
-        if (IS_INVALID_PTR(sfp_dev[i-24]))
+        sfp_dev[i] = device_create(sfp_class, NULL, MKDEV(223,i), NULL, "sfp%d", i);
+        if (IS_INVALID_PTR(sfp_dev[i]))
         {
-            sfp_dev[i-24] = NULL;
-            printk(KERN_CRIT "create e550_24t16y sfp[%d] device failed\n", i-24);
-            continue;
-        }
-
-        ret = device_create_file(sfp_dev[i-24], &dev_attr_sfp_presence);
-        if (ret != 0)
-        {
-            printk(KERN_CRIT "create e550_24t16y sfp[%d] device attr:presence failed\n", i-24);
+            sfp_dev[i] = NULL;
+            printk(KERN_CRIT "create e550_24t16y sfp[%d] device failed\n", i);
             continue;
         }
 
-        ret = device_create_file(sfp_dev[i-24], &dev_attr_sfp_enable);
+        ret = device_create_file(sfp_dev[i], &dev_attr_sfp_presence);
         if (ret != 0)
         {
-            printk(KERN_CRIT "create e550_24t16y sfp[%d] device attr:enable failed\n", i-24);
+            printk(KERN_CRIT "create e550_24t16y sfp[%d] device attr:presence failed\n", i);
+            continue;
+        }
+
+        ret = device_create_file(sfp_dev[i], &dev_attr_sfp_enable);
+        if (ret != 0)
+        {
+            printk(KERN_CRIT "create e550_24t16y sfp[%d] device attr:enable failed\n", i);
+            continue;
+        }
+
+        ret = device_create_file(sfp_dev[i], &dev_attr_sfp_eeprom);
+        if (ret != 0)
+        {
+            printk(KERN_CRIT "create e550_24t16y sfp[%d] device attr:eeprom failed\n", i);
             continue;
         }
     }
@@ -1218,17 +1271,14 @@ static int e550_24t16y_exit_sfp(void)
 {
     int i = 0;
 
-    for (i=1; i<=PORT_NUM; i++)
+    for (i=1; i<=SFP_NUM; i++)
     {
-        if (i <= 24)
-            continue;
-
-        if (IS_VALID_PTR(sfp_dev[i-24]))
+        if (IS_VALID_PTR(sfp_dev[i]))
         {
-            device_remove_file(sfp_dev[i-24], &dev_attr_sfp_presence);
-            device_remove_file(sfp_dev[i-24], &dev_attr_sfp_enable);
-            device_destroy(sfp_class, MKDEV(223,i-24));
-            sfp_dev[i-24] = NULL;
+            device_remove_file(sfp_dev[i], &dev_attr_sfp_presence);
+            device_remove_file(sfp_dev[i], &dev_attr_sfp_enable);
+            device_destroy(sfp_class, MKDEV(223,i));
+            sfp_dev[i] = NULL;
         }
     }
 

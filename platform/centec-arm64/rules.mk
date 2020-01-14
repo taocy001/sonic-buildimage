@@ -5,7 +5,6 @@ include $(PLATFORM_PATH)/one-image.mk
 include $(PLATFORM_PATH)/libsaithrift-dev.mk
 include $(PLATFORM_PATH)/docker-ptf-centec.mk
 include $(PLATFORM_PATH)/linux-kernel-arm64.mk
-include $(PLATFORM_PATH)/platform-conf.mk
 include $(PLATFORM_PATH)/platform-modules-centec-e550.mk
 include $(PLATFORM_PATH)/platform-modules-centec-e530.mk
 

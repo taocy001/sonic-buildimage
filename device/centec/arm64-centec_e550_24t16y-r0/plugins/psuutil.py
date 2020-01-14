@@ -51,7 +51,7 @@ class PsuUtil(PsuBase):
         except IOError:
             return False
 
-        return status == 0
+        return status == 1
 
     def get_psu_presence(self, index):
         """

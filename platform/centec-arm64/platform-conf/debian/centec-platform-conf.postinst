@@ -1,2 +1,0 @@
-systemctl enable centec_platform_conf.service
-systemctl start centec_platform_conf.service
