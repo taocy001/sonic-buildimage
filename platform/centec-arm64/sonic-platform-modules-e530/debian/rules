@@ -19,12 +19,13 @@ PACKAGE_PRE_NAME := sonic-platform-modules-e530
 KVERSION   ?= $(shell uname -r)
 KERNEL_SRC :=  /lib/modules/$(KVERSION)
 MOD_SRC_DIR:= $(shell pwd)
-MODULE_DIRS:= 48t4x_p
+MODULE_DIRS:= 48t4x_p 24x2c
 MODULE_DIR := modules
 UTILS_DIR := utils
 SERVICE_DIR := service
 CLASSES_DIR := classes
 CONF_DIR := conf
+KDAL_DIR := kdal
 
 %:
 	dh $@ --with systemd,python2,python3 --buildsystem=pybuild
@@ -36,6 +37,9 @@ clean:
 
 build:
 	#make modules -C $(KERNEL_SRC)/build M=$(MODULE_SRC)
+	(for mod in $(KDAL_DIR); do \
+		make modules -C $(KERNEL_SRC)/build M=$(MOD_SRC_DIR)/$${mod}/; \
+	done)
 	(for mod in $(MODULE_DIRS); do \
 		make modules -C $(KERNEL_SRC)/build M=$(MOD_SRC_DIR)/$${mod}/modules; \
 		$(PYTHON) $${mod}/setup.py build; \
@@ -63,6 +67,7 @@ binary-indep:
 		dh_installdirs -p$(PACKAGE_PRE_NAME)-$${mod} usr/local/bin; \
 		dh_installdirs -p$(PACKAGE_PRE_NAME)-$${mod} lib/systemd/system; \
 		cp $(MOD_SRC_DIR)/$${mod}/$(MODULE_DIR)/*.ko debian/$(PACKAGE_PRE_NAME)-$${mod}/$(KERNEL_SRC)/$(INSTALL_MOD_DIR); \
+		cp $(MOD_SRC_DIR)/$(KDAL_DIR)/*.ko debian/$(PACKAGE_PRE_NAME)-$${mod}/$(KERNEL_SRC)/$(INSTALL_MOD_DIR); \
 		cp $(MOD_SRC_DIR)/$${mod}/$(UTILS_DIR)/* debian/$(PACKAGE_PRE_NAME)-$${mod}/usr/local/bin/; \
 		cp $(MOD_SRC_DIR)/$${mod}/$(SERVICE_DIR)/*.service debian/$(PACKAGE_PRE_NAME)-$${mod}/lib/systemd/system/; \
 		$(PYTHON) $${mod}/setup.py install --root=$(MOD_SRC_DIR)/debian/$(PACKAGE_PRE_NAME)-$${mod} --install-layout=deb; \
