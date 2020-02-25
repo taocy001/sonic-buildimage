@@ -520,9 +520,9 @@ if [[ $CONFIGURED_ARCH == armhf || $CONFIGURED_ARCH == arm64 ]]; then
         sudo LANG=C chroot $FILESYSTEM_ROOT mkimage -A arm -O linux -T ramdisk -C gzip -d /boot/$INITRD_FILE /boot/u${INITRD_FILE}
         ## Overwriting the initrd image with uInitrd
         sudo LANG=C chroot $FILESYSTEM_ROOT mv /boot/u${INITRD_FILE} /boot/$INITRD_FILE
-##    elif [[ $CONFIGURED_ARCH == arm64 ]]; then
-##        sudo cp -v $PLATFORM_DIR/${sonic_asic_platform}-${CONFIGURED_ARCH}/sonic_fit.its $FILESYSTEM_ROOT/boot/
-##        sudo LANG=C chroot $FILESYSTEM_ROOT mkimage -f /boot/sonic_fit.its /boot/sonic_${CONFIGURED_ARCH}.fit
+    elif [[ $CONFIGURED_ARCH == arm64 ]]; then
+        sudo cp -v $PLATFORM_DIR/${sonic_asic_platform}-${CONFIGURED_ARCH}/sonic_fit.its $FILESYSTEM_ROOT/boot/
+        sudo LANG=C chroot $FILESYSTEM_ROOT mkimage -f /boot/sonic_fit.its /boot/sonic_${CONFIGURED_ARCH}.fit
     fi
 fi
 
