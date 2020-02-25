@@ -1,3 +1,3 @@
-kdal/dal.ko /lib/modules/4.9.0-9-2-arm64/kernel/extra
-24x8y2c/modules/centec_e550_24x8y2c_platform.ko /lib/modules/4.9.0-9-2-arm64/kernel/extra
+kdal/dal.ko /lib/modules/4.9.0-11-2-arm64/kernel/extra
+24x8y2c/modules/centec_e550_24x8y2c_platform.ko /lib/modules/4.9.0-11-2-arm64/kernel/extra
 24x8y2c/service/24x8y2c_platform.service /lib/systemd/system
