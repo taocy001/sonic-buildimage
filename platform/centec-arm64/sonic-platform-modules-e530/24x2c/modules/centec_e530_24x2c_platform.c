@@ -180,10 +180,10 @@ static int e530_24x2c_init_i2c_gpio(void)
     ret += e530_24x2c_smbus_write_reg(i2c_client_gpio1, 0x06, 0x0c);
     ret += e530_24x2c_smbus_write_reg(i2c_client_gpio1, 0x07, 0xff);
     /* gpio2 */
-    ret += e530_24x2c_smbus_write_reg(i2c_client_gpio1, 0x02, 0x00);
-    ret += e530_24x2c_smbus_write_reg(i2c_client_gpio1, 0x03, 0xff);
-    ret += e530_24x2c_smbus_write_reg(i2c_client_gpio1, 0x06, 0x00);
-    ret += e530_24x2c_smbus_write_reg(i2c_client_gpio1, 0x07, 0xff);
+    ret += e530_24x2c_smbus_write_reg(i2c_client_gpio2, 0x02, 0x00);
+    ret += e530_24x2c_smbus_write_reg(i2c_client_gpio2, 0x03, 0xff);
+    ret += e530_24x2c_smbus_write_reg(i2c_client_gpio2, 0x06, 0x00);
+    ret += e530_24x2c_smbus_write_reg(i2c_client_gpio2, 0x07, 0xff);
 
     if (ret)
     {
