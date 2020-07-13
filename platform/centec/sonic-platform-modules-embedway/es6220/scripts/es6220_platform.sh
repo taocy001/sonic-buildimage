@@ -21,9 +21,13 @@ init_devnum
 if [ "$1" == "init" ]; then
     #install drivers and dependencies
     depmod -a
+    modprobe tun
+    modprobe tap
     modprobe dal
 
 elif [ "$1" == "deinit" ]; then
+    modprobe -r tap
+    modprobe -r tun
     modprobe -r dal
 else
      echo "e582-48x2q4z_platform : Invalid option !"

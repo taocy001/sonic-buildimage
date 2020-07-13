@@ -28,6 +28,7 @@ if [ "$1" == "init" ]; then
     modprobe i2c-mux-pca954x force_deselect_on_exit=1
         i2cset -y 0 0x58 0x8 0x3f
     modprobe lm77
+    modprobe tap
     modprobe tun
     modprobe dal
     modprobe centec_at24c64
@@ -70,6 +71,8 @@ elif [ "$1" == "deinit" ]; then
     rm -rf /usr/bin/platform_monitor
     modprobe -r centec_e582_48x2q4z_platform
     modprobe -r centec_at24c64
+    modprobe -r tap
+    modprobe -r tun
     modprobe -r dal
     modprobe -r i2c-mux-pca954x
     modprobe -r i2c-dev
